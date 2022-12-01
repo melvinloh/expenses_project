@@ -13,9 +13,10 @@
         {% endblock %}
     </title>
 
-    <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
     <link href="{% static 'css/main.css' %}" rel="stylesheet">
     <link href="{% static 'css/dashboard.css' %}" rel="stylesheet">
+    <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
+    
 
 
     
@@ -31,7 +32,7 @@
 <div class="container-fluid">
   <div class="row">
 
-    <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+    <main>
         {% block content %}
 
         {% endblock %}
