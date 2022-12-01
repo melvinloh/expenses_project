@@ -130,3 +130,15 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# Django Messages Tags API
+# Sets the mapping of message level to message tag, which is rendered as a CSS class in HTML
+# https://docs.djangoproject.com/en/4.1/ref/settings/#std-setting-MESSAGE_TAGS
+from django.contrib import messages
+
+MESSAGE_TAGS = {
+    messages.DEBUG: 'debug',
+    messages.INFO: 'info',
+    messages.SUCCESS: 'success',
+    messages.WARNING: 'warning',
+    messages.ERROR: 'danger',
+}
