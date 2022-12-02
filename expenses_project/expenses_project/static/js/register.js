@@ -15,15 +15,24 @@ const emailFeedback = document.querySelector('#validationServerEmailFeedback');
 let validEmail = false;
 
 const passwordToggle = document.querySelector("#passwordToggle");
+
 const passwordField = document.querySelector("#passwordField");
+const passwordFeedback = document.querySelector("#validationServerPasswordFeedback");
+let validPassword = false;
 
 const registerButton = document.querySelector("#register-account-btn");
 
 // process client side validation on load
 emailField.addEventListener("load", validateEmail(null));
 usernameField.addEventListener("load", validateUsername(null));
+passwordField.addEventListener("load", validatePassword(null));
 
+// process client side validation on key up
+usernameField.addEventListener("keyup", e => validateUsername(e));
+emailField.addEventListener("keyup", e => validateEmail(e));
+passwordField.addEventListener("keyup", e => validatePassword(e));
 
+// passowrd toggle button
 passwordToggle.addEventListener("click", e => {
     if (passwordField.getAttribute("type") == "password") {
         passwordToggle.textContent = "HIDE";
@@ -34,9 +43,84 @@ passwordToggle.addEventListener("click", e => {
     }
 })
 
-emailField.addEventListener("keyup", e => validateEmail(e));
+// register button
+function toggleRegisterButton() {
+    if (validEmail && validUsername && validPassword) {
+        registerButton.disabled = false;
+    } else {
+        registerButton.disabled = true;
+    }
+}
+
+
+function validatePassword(e) {
+    // password is invalid on key change
+    validPassword = false;
+    let passwordValue;
+    if (e != null) {
+        passwordValue = e.target.value;
+    } else {
+        passwordValue = document.querySelector("#passwordField").value;
+    }
+    
+
+    if (passwordValue.length > 0) {
+        // loading when throttle
+        passwordFeedback.innerHTML = genericThrottle;
+
+        fetch("/authentication/validate-password", {
+            method : 'POST',
+            body: JSON.stringify({
+                password: passwordValue
+            })
+        })
+        .then(response => response.json())
+        .then(result => {
+            // console.log(result);
+
+            // invalid password
+            if (result.password_error) {
+                passwordField.classList.remove("is-valid");
+                passwordField.classList.add("is-invalid");
+
+                passwordFeedback.classList.remove("valid-feedback");
+                passwordFeedback.classList.add("invalid-feedback");
+
+                passwordFeedback.innerHTML = `<p> ${result.password_error} </p>`;
+
+            }
+
+            if (result.password_valid) {
+                passwordField.classList.remove("is-invalid");
+                passwordField.classList.add("is-valid");
+
+                passwordFeedback.classList.remove("invalid-feedback");
+                passwordFeedback.classList.add("valid-feedback");
+
+                passwordFeedback.innerHTML = `<p> ${result.password_valid} </p>`;
+                
+                validPassword = true;
+            }
+
+            toggleRegisterButton();
+
+        })
+    } else {
+        passwordField.classList.remove("is-valid");
+        passwordField.classList.remove("is-invalid");
+
+        passwordFeedback.classList.remove("invalid-feedback");
+        passwordFeedback.classList.remove("valid-feedback");
+        
+        passwordFeedback.innerHTML = null;
+
+        registerButton.disabled = true;
+    }
+}
+
+
 function validateEmail(e) {
-    // email is invalid on key change
+    // email is invalid prior ajax validation on key change
     validEmail = false;
     let emailValue;
     if (e != null) {
@@ -58,9 +142,7 @@ function validateEmail(e) {
         })
         .then(response => response.json())
         .then(result => {
-            console.log(result);
 
-            // invalid username
             if (result.email_error) {
                 emailField.classList.remove("is-valid");
                 emailField.classList.add("is-invalid");
@@ -81,7 +163,6 @@ function validateEmail(e) {
 
                 emailFeedback.innerHTML = `<p> ${result.email_valid} </p>`;
                 
-                // email is valid
                 validEmail = true;
             }
 
@@ -101,9 +182,8 @@ function validateEmail(e) {
     }
 }
 
-usernameField.addEventListener("keyup", e => validateUsername(e));
 function validateUsername(e) {
-    // username is invalid on key change
+    // username is invalid prior ajax validation on key change
     validUsername = false;
     let usernameValue;
     if (e != null) {
@@ -125,9 +205,7 @@ function validateUsername(e) {
         })
         .then(response => response.json())
         .then(result => {
-            console.log(result);
 
-            // invalid username
             if (result.username_error) {
                 usernameField.classList.remove("is-valid");
                 usernameField.classList.add("is-invalid");
@@ -168,11 +246,4 @@ function validateUsername(e) {
 
 }
 
-/// configure register button
-function toggleRegisterButton() {
-    if (validEmail && validUsername) {
-        registerButton.disabled = false;
-    } else {
-        registerButton.disabled = true;
-    }
-}
+
