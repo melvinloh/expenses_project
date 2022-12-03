@@ -1,5 +1,3 @@
-console.log("register.js success");
-
 const genericThrottle = ` <div class="spinner-border spinner-border-sm text-warning" role="status">
 <span class="visually-hidden">Loading...</span>
 </div>
@@ -22,15 +20,20 @@ let validPassword = false;
 
 const registerButton = document.querySelector("#register-account-btn");
 
+const flashMessages = document.querySelector('#flashMessages');
+
 // process client side validation on load
-emailField.addEventListener("load", validateEmail(null));
-usernameField.addEventListener("load", validateUsername(null));
-passwordField.addEventListener("load", validatePassword(null));
+emailField.addEventListener("pageshow", validateEmail(null));
+usernameField.addEventListener("pageshow", validateUsername(null));
+passwordField.addEventListener("pageshow", validatePassword(null));
 
 // process client side validation on key up
 usernameField.addEventListener("keyup", e => validateUsername(e));
 emailField.addEventListener("keyup", e => validateEmail(e));
 passwordField.addEventListener("keyup", e => validatePassword(e));
+
+// clear server side flash messages
+document.addEventListener("DOMContentLoaded", clearFlashMessages());
 
 // passowrd toggle button
 passwordToggle.addEventListener("click", e => {
@@ -50,6 +53,11 @@ function toggleRegisterButton() {
     } else {
         registerButton.disabled = true;
     }
+}
+
+// clearFlashMessages
+function clearFlashMessages() {
+    setTimeout(function() { flashMessages.innerHTML = null; }, 5000);
 }
 
 

@@ -3,46 +3,35 @@
 {% load static %}
 
 {% block content %}
-<div class="container">
-  <div class="row">
-    <div class="col-md-4"></div>
-    <div class="col-md-4">
 
-      <form action="{% url 'login' %}" method="post" novalidate>
+  <form action="{% url 'login' %}" method="post" novalidate>
 
-        {% csrf_token %}
+    {% csrf_token %}
 
-        <img class="mb-4" src="/docs/5.2/assets/brand/bootstrap-logo.svg" alt="" width="72" height="57">
-        <h1 class="h3 mb-3 fw-normal">Sign in</h1>
+    <img class="mb-4" src="/docs/5.2/assets/brand/bootstrap-logo.svg" alt="" width="72" height="57">
+    <h1 class="h3 mb-3 fw-normal">Sign in</h1>
 
-        <div class="form-group">{% include 'partial/messages.html' %}</div>
+    <div class="form-group" id="flashMessages">{% include 'partial/messages.html' %}</div>
 
-        <div class="form-group">
-          <label for="usernameField">Username</label>
-          <input type="text" class="form-control" id="usernameField" name="username" placeholder="John Doe" value="{{ fieldValues.username }}">
-          <div id="validationServerUsernameFeedback"></div>
-        </div>
-
-        <div class="form-group">
-          <label for="passwordField">Password</label>
-          <input type="password" class="form-control" id="passwordField" name="password" placeholder="Password">
-          <small type="button" class="btn btn-link" style="float: right;" id="passwordToggle">SHOW</small>
-          <div id="validationServerPasswordFeedback"></div>
-        </div> 
-    
-        <div class="checkbox mb-3">
-          <label>
-            <input type="checkbox" value="remember-me"> Remember me
-          </label>
-        </div>
-        <button class="w-100 btn btn-lg btn-primary" id="register-account-btn" type="submit">Sign in</button>
-        <p class="mt-5 mb-3 text-muted">&copy; 2017–2022</p>
-    </form>
-
+    <div class="form-group">
+      <label for="usernameField">Username</label>
+      <input type="text" class="form-control" id="usernameField" name="username" placeholder="John Doe" value="{{ fieldValues.username }}">
     </div>
-    <div class="col-md-4"></div>
-  </div>
-</div>
+
+    <div class="form-group">
+      <label for="passwordField">Password</label>
+      <input type="password" class="form-control" id="passwordField" name="password" placeholder="Password">
+      <small type="button" class="btn btn-link" style="float: right;" id="passwordToggle">SHOW</small>
+    </div> 
+
+    <div class="checkbox mb-3">
+      <label>
+        <input type="checkbox" value="remember-me"> Remember me
+      </label>
+    </div>
+    <button class="w-100 btn btn-lg btn-primary" id="login-account-btn" type="submit">Sign in</button>
+</form>
+
 
 <script src="{% static 'js/login.js' %}"></script>
 {% endblock %}

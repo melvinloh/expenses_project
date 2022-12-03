@@ -31,7 +31,12 @@
   <input class="form-control form-control-dark w-100 rounded-0 border-0" type="text" placeholder="Search" aria-label="Search">
   <div class="navbar-nav">
     <div class="nav-item text-nowrap">
-      <a class="nav-link px-3" href="#">Sign out</a>
+
+      <form action="{% url 'logout' %}" class="nav-link px-3" method="post">
+        {% csrf_token %}
+        <input class="btn btn-link link-light" type="submit" value="Sign out">
+      </form>
+      
     </div>
   </div>
 </header>
@@ -41,6 +46,7 @@
     {% include 'partial/sidebar.html' %}
 
     <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+      <div id="flashMessages">{% include 'partial/messages.html' %}</div>
         {% block content %}
 
         {% endblock %}

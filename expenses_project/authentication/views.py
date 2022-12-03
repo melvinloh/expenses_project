@@ -15,6 +15,7 @@ from django.utils.encoding import force_bytes, force_str
 
 from .utils import AppTokenGenerator
 import re
+from django.contrib.auth import authenticate, login, logout
 
 # Create your views here.
 
@@ -138,6 +139,7 @@ class RegistrationView(View):
 
         else:
             context = { 'fieldValues' : request.POST }
+            return render(request, 'authentication/register.html', context)
         
         return render(request, 'authentication/register.html', context)
 
@@ -164,3 +166,32 @@ class UserActivationView(View):
 class LoginView(View):
     def get(self, request):
         return render(request, 'authentication/login.html')
+
+    def post(self, request):
+
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+
+        if not username or not password:
+            messages.error(request, 'please ensure that all fields are filled.')
+        else:
+            # read about authentication methods at https://docs.djangoproject.com/en/4.1/topics/auth/default/
+            user = authenticate(username=username, password=password)
+            user_isValid = user is not None
+
+            if user_isValid and user.is_active:
+                messages.success(request, f"Welcome, {user.get_username()}! You are successfully logged in.")
+                return redirect('expenses-index')
+
+            elif user_isValid and not user.is_active:
+                messages.error(request, 'please activate your account via the link in the email sent.')
+            else:
+                messages.error(request, 'invalid username and/or password.')
+        
+        return redirect('login')
+
+class LogoutView(View):
+    def post(self, request):
+        logout(request)
+        messages.success(request, f"You have logged out successfully.")
+        return redirect('login')
