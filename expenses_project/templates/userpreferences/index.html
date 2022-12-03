@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+    <div class="container mt-2">
+
+        <form action="{% url 'user-preferences' %}" method="post">
+
+            {% csrf_token %}
+
+            <h6>Currency Preferences. Your current selection is $ {{ user_currency }}</h6>
+            <div class="input-group">
+                <select class="form-select" id="currencies-list" name="currency">
+    
+                    {% for currency in currencies %}
+                        {% if user_currency == currency.symbol %}
+                            <option selected value="{{ currency.symbol }}">{{ currency.name }} &lpar; {{ currency.symbol }} &rpar; </option>
+                        {% else %}    
+                            <option value="{{ currency.symbol }}">{{ currency.name }} &lpar; {{ currency.symbol }} &rpar; </option>
+                        {% endif %} 
+                    {% endfor %}
+    
+                </select>
+                <button class="btn btn-outline-secondary" type="submit">Save</button>
+            </div>
+
+        </form>
+
+    </div>
+{% endblock %}

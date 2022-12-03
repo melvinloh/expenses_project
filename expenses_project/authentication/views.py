@@ -180,6 +180,7 @@ class LoginView(View):
             user_isValid = user is not None
 
             if user_isValid and user.is_active:
+                login(request, user)
                 messages.success(request, f"Welcome, {user.get_username()}! You are successfully logged in.")
                 return redirect('expenses-index')
 
