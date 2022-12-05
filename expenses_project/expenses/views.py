@@ -9,6 +9,7 @@ from .utils import get_user_currency_symbol, server_validation
 from django.http import JsonResponse
 
 from django.core.paginator import Paginator
+import json
 
 
 # Create your views here.
@@ -26,13 +27,31 @@ def index(request):
         order_by = request.GET.get('order_by', '-date')
         all_user_expenses = Expense.objects.filter(user=request.user).order_by(order_by)
         
-        # all_user_expenses = queryset_user_expenses(request.user, sort_by=order_by)
+        paginator_obj = Paginator(all_user_expenses, 2)
+        page_number = request.GET.get('page', 1)
+        page_obj = paginator_obj.get_page(page_number)
 
-        context = {'all_user_expenses' : all_user_expenses, 'user_currency_symbol': user_currency_symbol, 'categories' : categories, }
+        
+        context = {'all_user_expenses' : all_user_expenses, 'user_currency_symbol': user_currency_symbol, 
+            'categories' : categories, 'page_obj' : page_obj }
+
         return render(request, 'expenses/index.html', context)
+
+@login_required(login_url='/authentication/login')
+def search_expenses(request):
+
+    if request.method == 'POST':
+        # stack filters together: https://docs.djangoproject.com/en/4.1/topics/db/queries/
+        search_str = json.loads(request.body).get('search-form-input')
+
+        all_user_expenses = Expense.objects.filter(user=request.user)
+        filtered_user_expenses = all_user_expenses.filter(description__icontains=search_str)
+        data = filtered_user_expenses.values()
+
+        return JsonResponse(list(data), safe=False)
+        
+
     
-
-
 @login_required(login_url='/authentication/login')
 def add_expenses(request):
 

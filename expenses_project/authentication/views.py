@@ -115,7 +115,7 @@ class RegistrationView(View):
             verification_link = reverse('activate-user', kwargs={'uidb64' : uidb64_encoded, 'token' : token_generator.make_token(new_user)})
             full_url_link = str('http://'+current_site_domain+verification_link)
 
-            message_body = f"Welcome {new_user.username}! \n Thanks for signing up with Example Expenses! \n You must follow this link to activate your account: {full_url_link}"
+            message_body = f"Welcome {new_user.username}!\n\nThanks for signing up with Example Expenses!\n\nYou must follow this link to activate your account: {full_url_link}"
 
             # Email Message
             activation_email = EmailMessage(
