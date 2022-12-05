@@ -57,14 +57,12 @@ def add_expenses(request):
 
     # get categories
     categories = Category.objects.all()
-    # set description field
-    fieldValues_description = None
     # get user currency
     user_currency_symbol = get_user_currency_symbol(request.user)
 
     if request.method == 'GET':
 
-        context = {'categories' : categories, 'user_currency_symbol': user_currency_symbol, 'fieldValues_description' : None }
+        context = {'categories' : categories, 'user_currency_symbol': user_currency_symbol, }
 
         return render(request, 'expenses/add_expenses.html', context)
     
