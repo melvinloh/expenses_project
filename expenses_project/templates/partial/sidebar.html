@@ -17,12 +17,32 @@
       </li>
 
       <li class="nav-item">
-        <a class="nav-link active" aria-current="page" href="#">
+        <a class="nav-link active" aria-current="page" href="{% url 'expenses-index' %}">
           <span data-feather="home" class="align-text-bottom"></span>
           My Expenses
         </a>
       </li>
 
+    </ul>
+
+    <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted text-uppercase">Create</h6>
+
+    <ul class="nav flex-column mb-2">
+
+      <li class="nav-item">
+        <a class="nav-link" href="{% url 'add-expenses' %}">
+          <span data-feather="file-text" class="align-text-bottom"></span>
+          Add Expenses
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="#">
+          <span data-feather="file-text" class="align-text-bottom"></span>
+          Add Income
+        </a>
+      </li>
+      
     </ul>
 
     <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted text-uppercase">Reports</h6>
