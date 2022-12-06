@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block content %}
+
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'expenses-index' %}">My Expenses</a></li>
+      <li class="breadcrumb-item active" aria-current="page">Expenses Summary</li>
+    </ol>
+</nav>
+
+<div class="container">
+
+    <h3>Hello there.</h3>
+    <canvas id="goodCanvas1" width="400" height="100" aria-label="Hello ARIA World" role="img">
+
+    </canvas>
+
+</div>
+
+    <script src="{% static 'js/Chart.min.js' %}"></script>
+    <script src="{% static 'js/statistics.js' %}"></script>
+
+{% endblock %}

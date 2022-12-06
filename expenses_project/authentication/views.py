@@ -17,8 +17,18 @@ from .utils import AppTokenGenerator, testPasswordStrength
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 import re
 from django.contrib.auth import authenticate, login, logout
+import threading
 
 # Create your views here.
+
+class EmailThread(threading.Thread):
+    def __init__(self, email):
+        self.email = email
+        threading.Thread.__init__(self)
+    
+    def run(self):
+        self.email.send(fail_silently=False)
+
 
 class EmailValidationView(View):
     def post(self, request):
@@ -122,7 +132,7 @@ class RegistrationView(View):
 
             # To debug if email send is unsuccessful
             try:
-                activation_email.send(fail_silently=False)
+                EmailThread(activation_email).start()
                 messages.success(request, 'account successfully created.')
                 new_user.save()
             except:
@@ -230,7 +240,7 @@ class ForgotPassword(View):
 
             # To debug if email send is unsuccessful
             try:
-                activation_email.send(fail_silently=False)
+                EmailThread(activation_email).start()
                 messages.success(request, 'reset link sent to your email successfully.')
                 return redirect('forgot-password')
             except:
@@ -246,11 +256,11 @@ class ResetPassword(View):
 
             token_generator = PasswordResetTokenGenerator()
             
-            #if not token_generator.check_token(user, token):
-            #    messages.error(request, "reset link invalid. please request a new link.")
-            #    return redirect('login')
-            #else:
-            return render(request, 'authentication/reset_password.html', {'tk': token, 'uid': uidb64, 'user': user })
+            if not token_generator.check_token(user, token):
+                messages.error(request, "reset link invalid. please request a new link.")
+                return redirect('login')
+            else:
+                return render(request, 'authentication/reset_password.html', {'tk': token, 'uid': uidb64, 'user': user })
         except:
             # if token or uid is invalid, such as a malicious user key in url manually
             messages.error(request, "error getting user identity.")
@@ -287,4 +297,3 @@ class ResetPassword(View):
         except:
             messages.warning(request, "error getting user identity. (server error)")
             return render(request, 'authentication/reset_password.html')
-    

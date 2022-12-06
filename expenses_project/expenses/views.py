@@ -10,6 +10,8 @@ from django.http import JsonResponse
 
 from django.core.paginator import Paginator
 import json
+import datetime
+from dateutil.relativedelta import relativedelta
 
 
 # Create your views here.
@@ -159,3 +161,27 @@ def delete_expenses(request, id):
     finally:
         return redirect('expenses-index')
     
+    
+# functions to create chart using Chart.JS (passing data as JSON object)
+
+def expenses_category_summary(request):
+    today = datetime.date.today()
+    six_months_ago = today - relativedelta(months=6)
+
+    expenses_six_months = Expense.objects.filter(user=request.user, date__gte=six_months_ago, date__lte=today)
+    
+    all_categories_six_months = {}
+
+    for expense_obj in expenses_six_months:
+        category = expense_obj.category
+
+        if all_categories_six_months.get(category) is None:
+            all_categories_six_months[category] = float(expense_obj.amount)
+        else:
+            all_categories_six_months[category] = float(expense_obj.amount) + all_categories_six_months.get(category)
+
+    return JsonResponse({'expenses_category_data' : all_categories_six_months }, safe=False)
+
+
+def expenses_statistics_view(request):
+    return render(request, 'expenses/statistics.html')
