@@ -106,8 +106,13 @@ function toggleAccordionButtons() {
     accordionBtnList.forEach(accordionBtn => {
         accordionBtn.addEventListener("click", e => {
             const visibility = accordionBtn.lastElementChild.style.visibility;
-            accordionBtn.lastElementChild.style.visibility = (visibility == "hidden") ? "visible": "hidden";
-            accordionBtn.firstElementChild.innerHTML = (visibility == "hidden") ? "Expand" : "Hide";
+            if (visibility == "hidden") {
+                accordionBtn.lastElementChild.style.visibility = "visible";
+                accordionBtn.firstElementChild.innerHTML = "Expand";
+            } else {
+                accordionBtn.lastElementChild.style.visibility = "hidden";
+                accordionBtn.firstElementChild.innerHTML = "Hide";
+            }
         })
     })
 }

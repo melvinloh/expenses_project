@@ -13,6 +13,8 @@ from django.http import JsonResponse
 
 from django.core.paginator import Paginator
 import json
+import datetime
+from dateutil.relativedelta import relativedelta
 
 
 # Create your views here.
@@ -30,7 +32,7 @@ def index(request):
         order_by = request.GET.get('order_by', '-date')
         all_user_income = Income.objects.filter(user=request.user).order_by(order_by)
         
-        paginator_obj = Paginator(all_user_income, 2)
+        paginator_obj = Paginator(all_user_income, 8)
         page_number = request.GET.get('page', 1)
         page_obj = paginator_obj.get_page(page_number)
 
@@ -161,4 +163,79 @@ def delete_income(request, id):
         messages.error(request, 'unable to remove entry.')
     finally:
         return redirect('income-index')
+
+# functions to create chart using Chart.JS (passing data as JSON object)
+
+def income_category_summary(request, mths):
+    today = datetime.date.today()
+    previously = today - relativedelta(months=mths)
+
+    income_x_months = Income.objects.filter(user=request.user, date__gte=previously, date__lte=today)
+    
+    all_categories_x_months = {}
+
+    for income_obj in income_x_months:
+        category = income_obj.income_stream
+
+        if all_categories_x_months.get(category) is None:
+            all_categories_x_months[category] = round(income_obj.amount, 2)
+        else:
+            all_categories_x_months[category] = round(income_obj.amount + all_categories_x_months.get(category), 2)
+
+    return JsonResponse({'income_category_data' : all_categories_x_months }, safe=False)
+
+def income_amount_summary(request, mths):
+    cumulative_amount_by_month = {}
+
+    today = datetime.date.today()
+    this_mth = today.month
+    this_yr = today.year
+    end_dt = today + datetime.timedelta(days=1)
+    
+    for _ in range(mths):
+        start_dt = datetime.datetime(this_yr, this_mth, 1)
+        income_list_for_month_x = Income.objects.filter(user=request.user, date__gte=start_dt, date__lt=end_dt)
+        
+        income_amt_for_month_x = 0
+        current_mth_string = start_dt.strftime('%B')
+
+        for income_obj in income_list_for_month_x:
+            income_amt_for_month_x += income_obj.amount
+
+        # add to dictionary
+        # note : maxmium months is 12, else dictionary will have values overrriden by same keys 
+        # (e.g. Dec 2022 and Dec 2021) both have keys as "December"
+        cumulative_amount_by_month[current_mth_string] = round(income_amt_for_month_x, 2)
+
+        # if jan - 1mth (overflow to last year dec)
+        if this_mth - 1 < 1:
+            this_mth = 12
+            this_mth = this_yr - 1
+        else:
+            this_mth = this_mth - 1
+        
+        end_dt = start_dt
+
+    return JsonResponse({'income_amount_data' : cumulative_amount_by_month }, safe=False)
+
+
+def income_statistics_view(request):
+    context = {}
+
+    today = datetime.date.today()
+
+    def get_amt_and_count(income_list):
+        count = len(income_list)
+        amount = 0
+
+        for income in income_list:
+            amount += income.amount
+
+        return {'count' : count, 'amount' : round(amount, 2) }
+
+    this_month = datetime.datetime(today.year, today.month, 1)
+    income_month = Income.objects.filter(user=request.user, date__gte=this_month, date__lte=today)
+    context['month'] = get_amt_and_count(income_month)
+
+    return render(request, 'income/statistics.html', context)
     
