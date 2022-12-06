@@ -36,7 +36,7 @@ def index(request):
 
         
         context = {'all_user_income' : all_user_income, 'user_currency_symbol': user_currency_symbol, 
-            'income_streams' : income_streams, 'page_obj' : page_obj }
+            'income_streams' : income_streams, 'page_obj' : page_obj, }
 
         return render(request, 'income/index.html', context)
 

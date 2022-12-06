@@ -13,7 +13,8 @@ from django.urls import reverse
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 
-from .utils import AppTokenGenerator
+from .utils import AppTokenGenerator, testPasswordStrength
+from django.contrib.auth.tokens import PasswordResetTokenGenerator
 import re
 from django.contrib.auth import authenticate, login, logout
 
@@ -63,8 +64,6 @@ class RegistrationView(View):
 
     def post(self, request):
 
-        MIN_PASSWORD_LENGTH = 8
-        MAX_PASSWORD_LENGTH = 15
         error_count = 0
 
         username = request.POST.get('username')
@@ -86,16 +85,11 @@ class RegistrationView(View):
             messages.error(request, 'username taken.')
             error_count += 1
 
-        if len(password) < MIN_PASSWORD_LENGTH or len(password) > MAX_PASSWORD_LENGTH:
-            messages.error(request, 'password must have a length of 8 to 15 characters.')
-            error_count += 1
+        password_error_messages = testPasswordStrength().test_strength(password)
+        error_count += len(password_error_messages)
 
-        # regex pattern
-        string_pattern = r"^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9]).+$"
-        regex_pattern = re.compile(string_pattern)
-        if len(regex_pattern.findall(str(password))) == 0:
-            messages.error(request, 'password must contain at least one uppercase letter, lowercase letter and one numeric digit.')
-            error_count += 1
+        for message in password_error_messages:
+            messages.error(request, message)
         
         if error_count == 0:
             # Validation completed. Update Database.
@@ -115,15 +109,15 @@ class RegistrationView(View):
             verification_link = reverse('activate-user', kwargs={'uidb64' : uidb64_encoded, 'token' : token_generator.make_token(new_user)})
             full_url_link = str('http://'+current_site_domain+verification_link)
 
-            message_body = f"Welcome {new_user.username}!\n\nThanks for signing up with Example Expenses!\n\nYou must follow this link to activate your account: {full_url_link}"
+            message_body = f"Welcome {new_user.username}!\n\nThanks for signing up with Fat Cat!\n\nYou must follow this link to activate your account: {full_url_link}"
 
             # Email Message
             activation_email = EmailMessage(
-                'Confirm Your E-mail Address', 
+                '[Fat Cat] Confirm Your E-mail Address', 
                 message_body,
                 'lohzy@outlook.com',
                 [str(email)], 
-                reply_to=['helpdesk@exampleexpenses.com'],
+                reply_to=['helpdesk@fatcat.com'],
             )
 
             # To debug if email send is unsuccessful
@@ -149,7 +143,7 @@ class UserActivationView(View):
 
         try:
 
-            uid = force_str(urlsafe_base64_decode(uidb64))
+            uid = int(force_str(urlsafe_base64_decode(uidb64)))
             user = User.objects.get(pk=uid)
             token_generator = AppTokenGenerator()
 
@@ -196,3 +190,101 @@ class LogoutView(View):
         logout(request)
         messages.success(request, f"You have logged out successfully.")
         return redirect('login')
+
+class ForgotPassword(View):
+    def get(self, request):
+        return render(request, 'authentication/forgot_password.html')
+    
+    def post(self, request):
+
+        email = request.POST.get('email')
+
+        if not validate_email(email):
+            messages.error(request, "please enter a valid email.")
+            return render(request, 'authentication/forgot_password.html', { "emailFieldValue": email })
+
+        elif len(User.objects.filter(email=email)) == 0:
+            messages.error(request, "this email is not registered with any existing account.")
+            return render(request, 'authentication/forgot_password.html', { "emailFieldValue": email })
+        
+        else:
+        
+            user_obj = User.objects.get(email=email)
+            current_site_domain = get_current_site(request).domain
+            uidb64_encoded = urlsafe_base64_encode(force_bytes(user_obj.pk))
+            token = PasswordResetTokenGenerator().make_token(user_obj)
+
+            reset_link = reverse('reset-password', kwargs={'uidb64' : uidb64_encoded, 'token' : token})
+            full_url_link = str('http://'+current_site_domain+reset_link)
+
+            message_body = f"Hi {user_obj.username}!\n\nWe heard that you lost your password. But no worries!\n\nYou can use the following link to reset your password: {full_url_link}"
+
+            # Email Message
+            activation_email = EmailMessage(
+                '[Fat Cat] Reset Your Password', 
+                message_body,
+                'lohzy@outlook.com',
+                [str(email)], 
+                reply_to=['helpdesk@fatcat.com'],
+            )
+
+            # To debug if email send is unsuccessful
+            try:
+                activation_email.send(fail_silently=False)
+                messages.success(request, 'reset link sent to your email successfully.')
+                return redirect('forgot-password')
+            except:
+                messages.warning(request, 'failed to send email. (server error)')
+                return render(request, 'authentication/forgot_password.html', { "emailFieldValue": email })
+
+class ResetPassword(View):
+    def get(self, request, uidb64, token):
+
+        try:
+            uid = int(force_str(urlsafe_base64_decode(uidb64)))
+            user = User.objects.get(pk=uid)
+
+            token_generator = PasswordResetTokenGenerator()
+            
+            #if not token_generator.check_token(user, token):
+            #    messages.error(request, "reset link invalid. please request a new link.")
+            #    return redirect('login')
+            #else:
+            return render(request, 'authentication/reset_password.html', {'tk': token, 'uid': uidb64, 'user': user })
+        except:
+            # if token or uid is invalid, such as a malicious user key in url manually
+            messages.error(request, "error getting user identity.")
+            return redirect('login')
+    
+    def post(self, request, uidb64, token):
+
+        password = request.POST.get('password')
+        confirm_password = request.POST.get('confirm-password')
+
+
+        try:
+            uid = force_str(urlsafe_base64_decode(uidb64))
+            user = User.objects.get(pk=uid)
+            context = {'tk': token, 'uid': uidb64, 'user': user }
+
+            if confirm_password != password:
+                messages.error(request, "passwords do not match.")
+                return render(request, 'authentication/reset_password.html', context)
+        
+            password_error_messages = testPasswordStrength().test_strength(password)
+
+            if len(password_error_messages) != 0:
+                for message in password_error_messages:
+                    messages.error(request, message)
+                return render(request, 'authentication/reset_password.html', context)
+
+            user.set_password(password)
+            user.save()
+
+            messages.success(request, "password reset successfully.")
+            return redirect('login')
+
+        except:
+            messages.warning(request, "error getting user identity. (server error)")
+            return render(request, 'authentication/reset_password.html')
+    

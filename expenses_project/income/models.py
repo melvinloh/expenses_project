@@ -8,7 +8,10 @@ class Income(models.Model):
     amount = models.FloatField()
     date = models.DateField(default=now)
     income_stream = models.CharField(max_length=255, blank=True)
-    description = models.TextField(blank=True)
+    description = models.TextField(blank=True, null=True)
+
+    class Meta:
+        verbose_name_plural = 'Income'
     
     def __str__(self) -> str:
         return f"{self.user} earned ${self.amount} from {self.income_stream}"

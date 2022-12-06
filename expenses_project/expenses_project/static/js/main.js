@@ -3,6 +3,7 @@ console.log("main.js success");
 flashMessages = document.querySelector('#flashMessages');
 
 document.addEventListener("DOMContentLoaded", clearFlashMessages());
+document.addEventListener("load", clearFlashMessages());
 
 // clearFlashMessages
 function clearFlashMessages() {

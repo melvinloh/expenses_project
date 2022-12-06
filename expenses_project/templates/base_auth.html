@@ -38,14 +38,20 @@
 
         <div class="col-md-4 position-absolute top-50 start-50 translate-middle">
 
+          <div class="row mb-2">
+            <div class="col-md-4"></div>
+            <div class="col-md-4 text-center"><img src="{% static 'img/kitty.png' %}" width="75px"></div>
+            <div class="col-md-4"></div>
+          </div>
+
           <div class="row">
             {% block content %}
 
             {% endblock %}
           </div>
 
-          <div class="row">
-            <p class="mt-5 mb-3 text-muted">&copy; 2017–2022</p>
+          <div class="row text-end">
+            <p class="mt-5 mb-3 text-muted">&copy; Fat Cat 2022</p>
           </div>
       
         </div>
