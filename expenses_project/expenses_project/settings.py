@@ -159,3 +159,6 @@ DEFAULT_FROM_EMAIL = os.environ.get('EMAIL_HOST_USER')
 EMAIL_USE_TLS = True
 EMAIL_USE_SSL = False
 EMAIL_PORT = 587
+
+# Configure sessions: https://docs.djangoproject.com/en/4.1/topics/http/sessions/
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True

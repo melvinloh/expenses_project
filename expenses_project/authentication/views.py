@@ -19,6 +19,8 @@ import re
 from django.contrib.auth import authenticate, login, logout
 import threading
 
+from django.conf import settings
+
 # Create your views here.
 
 class EmailThread(threading.Thread):
@@ -184,6 +186,14 @@ class LoginView(View):
             user_isValid = user is not None
 
             if user_isValid and user.is_active:
+
+                # Configure user session (May not work in Chrome)
+                if request.POST.__contains__('remember-me'):
+                    settings.SESSION_EXPIRE_AT_BROWSER_CLOSE = False
+                else:
+                    settings.SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+
+
                 login(request, user)
                 messages.success(request, f"Welcome, {user.get_username()}! You are successfully logged in.")
                 return redirect('expenses-index')
