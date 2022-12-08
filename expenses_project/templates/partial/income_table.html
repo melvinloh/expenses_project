@@ -3,6 +3,7 @@
         <td>{{ income.income_stream }}</td>
         <td>{{ income.amount }}</td>
         <td>
+                {% if income.description is not none %}
                 <div class="accordion-button" style="max-width: 400px;" data-bs-toggle="collapse" data-bs-target="#collapse-{{ income.id }}" aria-expanded="false" aria-controls="collapse-{{ income.id }}">
                     <button type="button" class="btn btn-outline-info btn-sm me-2">Expand</button>
                     <div class="d-inline-block text-truncate" style="max-width: 400px;">{{ income.description }}</div>
@@ -12,6 +13,9 @@
                     <div class="accordion-body" style="max-width: 400px;">{{ income.description }}</div>
                     </div>
                 </div>
+                {% else %}
+                    No description available &#128533;
+                {% endif %}
             
 
         </td>

@@ -13,6 +13,8 @@ import json
 import datetime
 from dateutil.relativedelta import relativedelta
 
+from income.models import Income, IncomeStream
+
 
 # Create your views here.
 
@@ -243,3 +245,106 @@ def expenses_statistics_view(request):
     context['week'] = get_amt_and_count(expenses_week)
 
     return render(request, 'expenses/statistics.html', context)
+
+def overview_view(request):
+    # Recent income / expenses
+    LIMIT = 5
+    expenses_list = list(Expense.objects.filter(user=request.user).order_by('-date')[:LIMIT])
+    income_list = list(Income.objects.filter(user=request.user).order_by('-date')[:LIMIT])
+    ptr_e, ptr_i = 0, 0
+    sorted_recent_list = []
+
+    # 'merge' 2 sorted lists
+    for _ in range(LIMIT):
+        if ptr_e == len(expenses_list):
+            sorted_recent_list += income_list[ptr_i:]
+            break
+        if ptr_i ==len(income_list):
+            sorted_recent_list += expenses_list[ptr_e:]
+            break
+
+        if expenses_list[ptr_e].date > income_list[ptr_i].date:
+            sorted_recent_list.append(expenses_list[ptr_e])
+            ptr_e += 1
+        elif expenses_list[ptr_e].date < income_list[ptr_i].date:
+            sorted_recent_list.append(income_list[ptr_i])
+            ptr_i += 1
+        else:
+            # tiebreakers are fair
+            sorted_recent_list.append(expenses_list[ptr_e])
+            sorted_recent_list.append(income_list[ptr_i])
+            ptr_e += 1
+            ptr_i += 1
+
+    recent_count = len(sorted_recent_list)
+
+    return render(request, 'expenses/overview.html', {'recent': sorted_recent_list, 'recent_count': recent_count} )
+
+def overview_chart(request):
+
+    # Charting
+    MTHS = 12
+    months_name = []
+    expense_amt = []
+    income_amt = []
+    net_worth_amt = []
+
+    today = datetime.date.today()
+    this_mth = today.month
+    this_yr = today.year
+    end_dt = today + datetime.timedelta(days=1)
+    
+    for _ in range(MTHS):
+        start_dt = datetime.datetime(this_yr, this_mth, 1)
+        expenses_list_for_month_x = Expense.objects.filter(user=request.user, date__gte=start_dt, date__lt=end_dt)
+        income_list_for_month_x = Income.objects.filter(user=request.user, date__gte=start_dt, date__lt=end_dt)
+        
+        expense_amt_for_month_x = 0
+        income_amt_for_month_x = 0
+        current_mth_string = start_dt.strftime('%B')
+
+        for expense_obj in expenses_list_for_month_x:
+            expense_amt_for_month_x += expense_obj.amount
+
+        for income_obj in income_list_for_month_x:
+            income_amt_for_month_x += income_obj.amount
+
+        expense_amt_for_month_x, income_amt_for_month_x = round(expense_amt_for_month_x, 2), round(income_amt_for_month_x, 2)
+        # append
+        months_name.append(current_mth_string)
+        expense_amt.append(expense_amt_for_month_x)
+        income_amt.append(income_amt_for_month_x)
+
+
+        # if jan - 1mth (overflow to last year dec)
+        if this_mth - 1 < 1:
+            this_mth = 12
+            this_mth = this_yr - 1
+        else:
+            this_mth = this_mth - 1
+        
+        end_dt = start_dt
+
+    # net worth one year ago (note: if today is Dec 9, 2022, one yr ago is one Jan 1 2022, not Dec 10, 2021)
+    one_yr_ago = end_dt
+    expenses_before = Expense.objects.filter(user=request.user, date__lt=one_yr_ago)
+    income_before = Income.objects.filter(user=request.user, date__lt=one_yr_ago)
+    prev_net_worth = 0
+
+    for expense in expenses_before:
+        prev_net_worth -= expense.amount
+    for income in income_before:
+        prev_net_worth += income.amount
+    
+    # list for expenses and amt and months are currently from newest to oldest. reverse so that oldest to newest
+    months_name.reverse()
+    income_amt.reverse()
+    expense_amt.reverse()
+
+    for i in range(MTHS):
+        prev_net_worth = prev_net_worth + income_amt[i] - expense_amt[i]
+        net_worth_amt.append(prev_net_worth)
+
+
+    data = { 'expense_list': expense_amt, 'income_list': income_amt, 'months': months_name, 'net_worth_list': net_worth_amt }
+    return JsonResponse(data, safe=False)

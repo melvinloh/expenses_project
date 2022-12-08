@@ -11,5 +11,6 @@ urlpatterns = [
     path('expenses-category-summary/<int:mths>', views.expenses_category_summary, name="expenses-category-summary"),
     path('expenses-amount-summary/<int:mths>', views.expenses_amount_summary, name="expenses-amount-summary"),
     path('expenses-statistics-view', views.expenses_statistics_view, name="expenses-statistics-view"),
+    path('overview-chart', views.overview_chart, name="overview-chart"),
 ]
 
