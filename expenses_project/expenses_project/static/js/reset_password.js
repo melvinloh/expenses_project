@@ -58,6 +58,8 @@ function validateCfmPassword(e) {
             validMatchingPassword = false;
         }
     }
+
+    toggleResetButton();
     
 }
 

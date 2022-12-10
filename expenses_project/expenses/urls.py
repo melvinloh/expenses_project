@@ -12,5 +12,7 @@ urlpatterns = [
     path('expenses-amount-summary/<int:mths>', views.expenses_amount_summary, name="expenses-amount-summary"),
     path('expenses-statistics-view', views.expenses_statistics_view, name="expenses-statistics-view"),
     path('overview-chart', views.overview_chart, name="overview-chart"),
+    path('export-csv-file', views.export_csv_file, name="export-csv-file-expenses"),
+    path('export-xls-file', views.export_xls_file, name="export-xls-file-expenses"),
 ]
 

@@ -196,7 +196,7 @@ class LoginView(View):
 
                 login(request, user)
                 messages.success(request, f"Welcome, {user.get_username()}! You are successfully logged in.")
-                return redirect('expenses-index')
+                return redirect('overview')
 
             elif user_isValid and not user.is_active:
                 messages.error(request, 'please activate your account via the link in the email sent.')

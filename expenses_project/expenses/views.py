@@ -1,20 +1,20 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from .models import Category, Expense
-from userpreferences.models import UserPreference
+from income.models import Income
 from django.contrib import messages
-from django.shortcuts import redirect
 
 from .utils import get_user_currency_symbol, server_validation
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 
 from django.core.paginator import Paginator
+
 import json
 import datetime
 from dateutil.relativedelta import relativedelta
 
-from income.models import Income, IncomeStream
-
+import csv
+import xlwt
 
 # Create your views here.
 
@@ -165,7 +165,7 @@ def delete_expenses(request, id):
     
     
 # functions to create chart using Chart.JS (passing data as JSON object)
-
+@login_required(login_url='/authentication/login')
 def expenses_category_summary(request, mths):
     today = datetime.date.today()
     previously = today - relativedelta(months=mths)
@@ -184,6 +184,7 @@ def expenses_category_summary(request, mths):
 
     return JsonResponse({'expenses_category_data' : all_categories_x_months }, safe=False)
 
+@login_required(login_url='/authentication/login')
 def expenses_amount_summary(request, mths):
     cumulative_amount_by_month = {}
 
@@ -218,7 +219,7 @@ def expenses_amount_summary(request, mths):
 
     return JsonResponse({'expenses_amount_data' : cumulative_amount_by_month }, safe=False)
 
-
+@login_required(login_url='/authentication/login')
 def expenses_statistics_view(request):
     context = {}
 
@@ -246,6 +247,7 @@ def expenses_statistics_view(request):
 
     return render(request, 'expenses/statistics.html', context)
 
+@login_required(login_url='/authentication/login')
 def overview_view(request):
     # Recent income / expenses
     LIMIT = 5
@@ -280,6 +282,7 @@ def overview_view(request):
 
     return render(request, 'expenses/overview.html', {'recent': sorted_recent_list, 'recent_count': recent_count} )
 
+@login_required(login_url='/authentication/login')
 def overview_chart(request):
 
     # Charting
@@ -348,3 +351,70 @@ def overview_chart(request):
 
     data = { 'expense_list': expense_amt, 'income_list': income_amt, 'months': months_name, 'net_worth_list': net_worth_amt }
     return JsonResponse(data, safe=False)
+
+@login_required(login_url='/authentication/login')
+def export_csv_file(request):
+
+    # read more at https://docs.djangoproject.com/en/4.1/howto/outputting-csv/
+
+    str_date_today = datetime.datetime.now().strftime("%m-%d-%Y")
+    str_time_today = datetime.datetime.now().strftime("%H-%M-%S")
+    file_name = f"expenses-data-on-{str_date_today}-at-{str_time_today}-hrs"
+
+    response = HttpResponse( 
+        content_type='text/csv',
+        headers={'Content-Disposition': f'attachment; filename={file_name}.csv'},
+    )
+
+    writer = csv.writer(response)
+    expenses_list = Expense.objects.filter(user=request.user)
+    writer.writerow(['S/N', 'Category', 'Amount', 'Date (mm/dd/yyyy)', 'Description'])
+    count = 1
+
+    for expense in expenses_list:
+        writer.writerow([count, expense.category, "{:.2f}".format(expense.amount), expense.date.strftime("%m/%d/%Y").strip(), expense.description])
+        count += 1
+
+    return response
+
+@login_required(login_url='/authentication/login')
+def export_xls_file(request):
+
+    str_date_today = datetime.datetime.now().strftime("%m-%d-%Y")
+    str_time_today = datetime.datetime.now().strftime("%H-%M-%S")
+    file_name = f"expenses-data-on-{str_date_today}-at-{str_time_today}-hrs"
+
+    response = HttpResponse( 
+        content_type='application/ms-excel',
+        headers={'Content-Disposition': f'attachment; filename={file_name}.xls'},
+    )
+
+    wb = xlwt.Workbook()
+    ws = wb.add_sheet('Expenses')
+
+    header_style = xlwt.easyxf('font: name Arial, bold on')
+    body_style = xlwt.easyxf('font: name Arial')
+    amount_style = xlwt.easyxf(num_format_str='.00')
+    date_style = xlwt.easyxf(num_format_str='MM-DD-YYYY')
+
+    header_col = ['Category', 'Amount', 'Date (mm/dd/yyyy)', 'Description']
+
+    for n in range(len(header_col)):
+        ws.write(0, n, header_col[n], header_style)
+
+    expenses_list = Expense.objects.filter(user=request.user).values_list('category', 'amount', 'date', 'description')
+    
+    row_num = 1
+    for expense in expenses_list:
+        for n in range(len(expense)):
+            if n == 1:
+                ws.write(row_num, n, expense[n], amount_style)
+            elif n == 2:
+                ws.write(row_num, n, expense[n], date_style)
+            else:
+                ws.write(row_num, n, str(expense[n]), body_style)
+        row_num += 1
+    
+    wb.save(response)
+
+    return response

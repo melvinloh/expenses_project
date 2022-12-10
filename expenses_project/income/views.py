@@ -1,20 +1,21 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 
 # Create your views here.
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from .models import Income, IncomeStream
-from userpreferences.models import UserPreference
 from django.contrib import messages
-from django.shortcuts import redirect
 
 from .utils import get_user_currency_symbol, server_validation
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 
 from django.core.paginator import Paginator
 import json
 import datetime
 from dateutil.relativedelta import relativedelta
+
+import csv
+import xlwt
 
 
 # Create your views here.
@@ -24,7 +25,7 @@ def index(request):
 
     # get user currency
     user_currency_symbol = get_user_currency_symbol(request.user)
-    # get categories
+    # get income stream
     income_streams = IncomeStream.objects.all()
 
     if request.method == 'GET':
@@ -60,7 +61,7 @@ def search_income(request):
 @login_required(login_url='/authentication/login')
 def add_income(request):
 
-    # get categories
+    # get income stream
     income_streams = IncomeStream.objects.all()
     # get user currency
     user_currency_symbol = get_user_currency_symbol(request.user)
@@ -184,6 +185,7 @@ def income_category_summary(request, mths):
 
     return JsonResponse({'income_category_data' : all_categories_x_months }, safe=False)
 
+@login_required(login_url='/authentication/login')
 def income_amount_summary(request, mths):
     cumulative_amount_by_month = {}
 
@@ -218,7 +220,7 @@ def income_amount_summary(request, mths):
 
     return JsonResponse({'income_amount_data' : cumulative_amount_by_month }, safe=False)
 
-
+@login_required(login_url='/authentication/login')
 def income_statistics_view(request):
     context = {}
 
@@ -239,3 +241,69 @@ def income_statistics_view(request):
 
     return render(request, 'income/statistics.html', context)
     
+@login_required(login_url='/authentication/login')
+def export_csv_file(request):
+
+    # read more at https://docs.djangoproject.com/en/4.1/howto/outputting-csv/
+
+    str_date_today = datetime.datetime.now().strftime("%m-%d-%Y")
+    str_time_today = datetime.datetime.now().strftime("%H-%M-%S")
+    file_name = f"income-data-on-{str_date_today}-at-{str_time_today}-hrs"
+
+    response = HttpResponse( 
+        content_type='text/csv',
+        headers={'Content-Disposition': f'attachment; filename={file_name}.csv'},
+    )
+
+    writer = csv.writer(response)
+    income_list = Income.objects.filter(user=request.user)
+    writer.writerow(['S/N', 'Category', 'Amount', 'Date (mm/dd/yyyy)', 'Description'])
+    count = 1
+
+    for income in income_list:
+        writer.writerow([count, income.income_stream, "{:.2f}".format(income.amount), income.date.strftime("%m/%d/%Y").strip(), income.description])
+        count += 1
+
+    return response
+
+@login_required(login_url='/authentication/login')
+def export_xls_file(request):
+
+    str_date_today = datetime.datetime.now().strftime("%m-%d-%Y")
+    str_time_today = datetime.datetime.now().strftime("%H-%M-%S")
+    file_name = f"income-data-on-{str_date_today}-at-{str_time_today}-hrs"
+
+    response = HttpResponse( 
+        content_type='application/ms-excel',
+        headers={'Content-Disposition': f'attachment; filename={file_name}.xls'},
+    )
+
+    wb = xlwt.Workbook()
+    ws = wb.add_sheet('Income')
+
+    header_style = xlwt.easyxf('font: name Arial, bold on')
+    body_style = xlwt.easyxf('font: name Arial')
+    amount_style = xlwt.easyxf(num_format_str='.00')
+    date_style = xlwt.easyxf(num_format_str='MM-DD-YYYY')
+
+    header_col = ['Income Stream', 'Amount', 'Date (mm/dd/yyyy)', 'Description']
+
+    for n in range(len(header_col)):
+        ws.write(0, n, header_col[n], header_style)
+
+    income_list = Income.objects.filter(user=request.user).values_list('income_stream', 'amount', 'date', 'description')
+    
+    row_num = 1
+    for income in income_list:
+        for n in range(len(income)):
+            if n == 1:
+                ws.write(row_num, n, income[n], amount_style)
+            elif n == 2:
+                ws.write(row_num, n, income[n], date_style)
+            else:
+                ws.write(row_num, n, str(income[n]), body_style)
+        row_num += 1
+    
+    wb.save(response)
+
+    return response
