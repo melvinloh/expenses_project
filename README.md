@@ -12,6 +12,8 @@ The web app also allows users to set their base currency and modify their userna
 
 **Challenges faced:** Being the first time I used ChartJS together with Django, I faced some trouble integrating them together and getting the data to render on the charts properly. Another issue was using Bootstrap's modal as a `<form>`, which was not rendering properly. However, using a modal form as opposed to redirecting users to another page was a deliberate decision I made as I believed this improves the user experience.  
 
+**Video:** A short video demonstrating the features and usage of the web app is available at: 
+
 
 ## Getting Started
 
