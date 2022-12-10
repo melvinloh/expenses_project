@@ -1,7 +1,7 @@
 # expenses_project
 
 ## About
-This web application is created using **Django**, **PostgreSQL** and **Bootstrap**. Put it simply, it is a finance expenses tracker app that supports CRUD operations. Aptly named Fat Cat, this web app includes a variety of features including, but not limited to:
+This web application is created using [**Django**](https://docs.djangoproject.com/en/4.1/), [**PostgreSQL**](https://www.postgresql.org/) and [**Bootstrap**](https://getbootstrap.com/). Put it simply, it is a finance expenses tracker app that supports CRUD operations. Aptly named Fat Cat, this web app includes a variety of features including, but not limited to:
 - user registration and sign-in, password strength validation, forgot password and reset password with email feature.
 - interactive line, bar and pie charts to view expenses/income data.
 - view recent activity feature.
@@ -18,11 +18,13 @@ The web app also allows users to set their base currency and modify their userna
 To get started, follow the steps below:
 
 1. Install the following dependencies
-- python 3.8.2, django 4.1
+- python 3.8.2, django 4.1,
 - packages (using `pip install`): validate_email, xlwt, django-chartjs, python-dateutil, psycopg2
 2. Export environmental variables in bash
 - Database: `export` DB_NAME=expensesdb, DB_USER=postgres, DB_PASSWORD, DB_HOST=localhost
 - Email: `export` EMAIL_HOST (e.g smtp.gmail.com. Check `settings.py` for more information.), EMAIL_HOST_USER (your email), EMAIL_HOST_PASSWORD (your email password)
+
+*Note: I recommend to enter all environmental variables in a file and then export the file. Remember to use the `gitignore` command on the file to prevent leaking your email and password if you intend to upload your files on a public Github repo.*
 
 ## Running the App
 Once all dependencies are installed, run the app in the terminal using `py manage.py runserver`. And you are all set! 
