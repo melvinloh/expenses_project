@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.views import View
 import json
 from django.http import JsonResponse
@@ -6,7 +6,6 @@ from django.contrib.auth.models import User
 from validate_email import validate_email
 from django.contrib import messages
 from django.core.mail import EmailMessage
-from django.shortcuts import redirect
 
 from django.contrib.sites.shortcuts import get_current_site
 from django.urls import reverse
@@ -20,6 +19,7 @@ from django.contrib.auth import authenticate, login, logout
 import threading
 
 from django.conf import settings
+import os
 
 # Create your views here.
 
@@ -243,7 +243,7 @@ class ForgotPassword(View):
             activation_email = EmailMessage(
                 '[Fat Cat] Reset Your Password', 
                 message_body,
-                'lohzy@outlook.com',
+                os.environ.get('EMAIL_HOST_USER'),
                 [str(email)], 
                 reply_to=['helpdesk@fatcat.com'],
             )
