@@ -39,7 +39,7 @@ def index(request):
 
         
         context = {'all_user_income' : all_user_income, 'user_currency_symbol': user_currency_symbol, 
-            'income_streams' : income_streams, 'page_obj' : page_obj, }
+            'income_streams' : income_streams, 'page_obj' : page_obj, 'today': datetime.datetime.today().strftime('%Y-%m-%d'), }
 
         return render(request, 'income/index.html', context)
 
@@ -68,7 +68,7 @@ def add_income(request):
 
     if request.method == 'GET':
 
-        context = {'income_streams' : income_streams, 'user_currency_symbol': user_currency_symbol, }
+        context = {'income_streams' : income_streams, 'user_currency_symbol': user_currency_symbol, 'today': datetime.datetime.today().strftime('%Y-%m-%d')}
 
         return render(request, 'income/add_income.html', context)
     

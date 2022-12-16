@@ -37,7 +37,7 @@ def index(request):
 
         
         context = {'all_user_expenses' : all_user_expenses, 'user_currency_symbol': user_currency_symbol, 
-            'categories' : categories, 'page_obj' : page_obj }
+            'categories' : categories, 'page_obj' : page_obj, 'today': datetime.datetime.today().strftime('%Y-%m-%d'), }
 
         return render(request, 'expenses/index.html', context)
 
@@ -66,7 +66,7 @@ def add_expenses(request):
 
     if request.method == 'GET':
 
-        context = {'categories' : categories, 'user_currency_symbol': user_currency_symbol, }
+        context = {'categories' : categories, 'user_currency_symbol': user_currency_symbol, 'today': datetime.datetime.today().strftime('%Y-%m-%d'), }
 
         return render(request, 'expenses/add_expenses.html', context)
     
