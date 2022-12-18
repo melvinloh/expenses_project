@@ -135,7 +135,7 @@ class RegistrationView(View):
             # To debug if email send is unsuccessful
             try:
                 EmailThread(activation_email).start()
-                messages.success(request, 'account successfully created.')
+                messages.success(request, 'account successfully created. Verify your account using your email address.')
                 new_user.save()
             except:
                 messages.warning(request, 'failed to send email. account activation unsuccessful.')
@@ -182,10 +182,10 @@ class LoginView(View):
             messages.error(request, 'please ensure that all fields are filled.')
         else:
             # read about authentication methods at https://docs.djangoproject.com/en/4.1/topics/auth/default/
+            #NOTE: to authenticate successfully, username, password, and is_active must ALL be present/correct.
             user = authenticate(username=username, password=password)
-            user_isValid = user is not None
 
-            if user_isValid and user.is_active:
+            if user:
 
                 # Configure user session (May not work in Chrome)
                 if request.POST.__contains__('remember-me'):
@@ -198,11 +198,20 @@ class LoginView(View):
                 messages.success(request, f"Welcome, {user.get_username()}! You are successfully logged in.")
                 return redirect('overview')
 
-            elif user_isValid and not user.is_active:
-                messages.error(request, 'please activate your account via the link in the email sent.')
             else:
-                messages.error(request, 'invalid username and/or password.')
-        
+                potential_user_list = User.objects.filter(username=username)
+
+                if len(potential_user_list) == 0:
+                    # username entered wrongly
+                    messages.error(request, 'invalid username and/or password.')
+                else:
+                    if (potential_user_list.first().is_active):
+                        # password entered wrongly
+                        messages.error(request, 'invalid username and/or password.')
+                    else:
+                        # username and password correct, but account not activated.
+                        messages.error(request, 'please activate your account via the link in the email sent.')
+            
         return redirect('login')
 
 class LogoutView(View):
