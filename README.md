@@ -13,11 +13,11 @@ This web application is created using [**Django**](https://docs.djangoproject.co
 
 The web app also allows users to set their base currency and modify their usernames, email and password. I also customed the style of the Django admin page using CSS. 
 
-<img src="./markdown_image_1.png"  width="800" height="350">
+<img src="./markdown_image_1.png"  width="800" height="450">
 
 *Image of Dashboard*
 
-<img src="./markdown_image_2.png"  width="800" height="350">
+<img src="./markdown_image_2.png"  width="800" height="450">
 
 *Image of Expenses Summary Page*
 
