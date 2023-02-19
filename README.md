@@ -1,6 +1,7 @@
 # FAT CAT (An Expense and Income Tracker App)
 
 ## About
+
 This web application is created using [**Django**](https://docs.djangoproject.com/en/4.1/), [**PostgreSQL**](https://www.postgresql.org/) and [**Bootstrap**](https://getbootstrap.com/). Put it simply, it is a finance expenses tracker app that supports CRUD operations. Aptly named Fat Cat, this web app includes a variety of features including, but not limited to:
 - custom user registration and sign-in, password strength validation, forgot password and reset password with email feature.
 - update user preferences and personal information. (base currency, username, email and password)
@@ -11,6 +12,14 @@ This web application is created using [**Django**](https://docs.djangoproject.co
 - export data as a CSV/Excel file.
 
 The web app also allows users to set their base currency and modify their usernames, email and password. I also customed the style of the Django admin page using CSS. 
+
+<img src="./markdown_image_1.png"  width="800" height="450">
+
+*Image of Dashboard*
+
+<img src="./markdown_image_2.png"  width="800" height="350">
+
+*Image of Expenses Summary Page*
 
 **Challenges faced:** Being the first time I used [ChartJS](https://www.chartjs.org/docs/latest/) together with Django, I faced some trouble integrating them together and getting the data to render on the charts properly. Another issue was using Bootstrap's modal as a `<form>`, which was not rendering properly. However, using a modal form as opposed to redirecting users to another page was a deliberate decision I made as I believed this improves the user experience.  
 
