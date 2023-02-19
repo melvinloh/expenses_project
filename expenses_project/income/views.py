@@ -212,7 +212,7 @@ def income_amount_summary(request, mths):
         # if jan - 1mth (overflow to last year dec)
         if this_mth - 1 < 1:
             this_mth = 12
-            this_mth = this_yr - 1
+            this_yr = this_yr - 1
         else:
             this_mth = this_mth - 1
         
